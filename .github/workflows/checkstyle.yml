@@ -1,0 +1,39 @@
+name: Checkstyle Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  checkstyle:
+    name: Run Checkstyle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Run Checkstyle
+        run: mvn checkstyle:checkstyle
+
+      - name: Upload Checkstyle Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: checkstyle-report
+          path: target/checkstyle-result.xml
